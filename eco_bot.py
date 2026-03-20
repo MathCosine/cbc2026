@@ -1,5 +1,5 @@
 from cambc import *
-from utils import get_closest_position, get_direction_to_core
+from utils import get_closest_position, get_direction_to_core, smart_move
 
 def run_eco_bot(c: Controller, core_pos: Position):
     if c.get_move_cooldown() > 0 and c.get_action_cooldown() > 0:
@@ -8,7 +8,6 @@ def run_eco_bot(c: Controller, core_pos: Position):
     my_pos = c.get_position()
     titanium, axionite = c.get_global_resources()
 
-    # 1. Connect Harvesters/Foundries to the Core
     nearby_buildings = c.get_nearby_buildings(dist_sq=2)
     for b_id in nearby_buildings:
         b_type = c.get_entity_type(b_id)
@@ -19,7 +18,6 @@ def run_eco_bot(c: Controller, core_pos: Position):
                     c.build_conveyor(my_pos, dir_to_core)
                     return
 
-    # 2. Build Foundries next to Axionite Harvesters
     for b_id in nearby_buildings:
         if c.get_entity_type(b_id) == EntityType.HARVESTER:
             harvester_pos = c.get_position(b_id)
@@ -29,7 +27,6 @@ def run_eco_bot(c: Controller, core_pos: Position):
                         c.build_foundry(my_pos)
                         return
 
-    # 3. Decide what to mine
     target_env = Environment.ORE_AXIONITE if titanium > 300 else Environment.ORE_TITANIUM
     nearby_tiles = c.get_nearby_tiles()
     ore_tiles = [t for t in nearby_tiles if c.get_tile_env(t) == target_env]
@@ -43,13 +40,10 @@ def run_eco_bot(c: Controller, core_pos: Position):
                     c.build_harvester(target_ore)
                     return
         elif dist > 2 and c.get_move_cooldown() == 0:
-            move_dir = my_pos.direction_to(target_ore)
-            if c.can_move(move_dir):
-                c.move(move_dir)
-                return
+            smart_move(c, my_pos, target_ore)
+            return
 
-    # 4. Wander outward if idle
     if c.get_move_cooldown() == 0:
-        away_from_core = core_pos.direction_to(my_pos)
-        if c.can_move(away_from_core):
-            c.move(away_from_core)
+        # Create a target position directly away from the core
+        outward_target = my_pos.add(core_pos.direction_to(my_pos))
+        smart_move(c, my_pos, outward_target)
