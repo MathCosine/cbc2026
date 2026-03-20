@@ -23,14 +23,14 @@ class Player:
                     return 
 
                 bot_id = c.get_id()
-                role_number = bot_id % 3 
+                role_number = bot_id % 5  # Returns 0, 1, 2, 3, or 4
 
-                if role_number == 0:
-                    run_eco_bot(c, self.core_pos)
-                elif role_number == 1:
-                    run_attack_bot(c, self.core_pos)
+                if role_number < 3:
+                    run_eco_bot(c, self.core_pos)      # 60% chance
+                elif role_number == 3:
+                    run_attack_bot(c, self.core_pos)   # 20% chance
                 else:
-                    run_defense_bot(c, self.core_pos)
+                    run_defense_bot(c, self.core_pos)  # 20% chance
 
             elif entity_type in (EntityType.GUNNER, EntityType.SENTINEL, EntityType.BREACH):
                 run_turret(c)
