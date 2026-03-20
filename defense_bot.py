@@ -1,4 +1,5 @@
 from cambc import *
+from utils import smart_move
 
 def run_defense_bot(c: Controller, core_pos: Position):
     my_pos = c.get_position()
@@ -13,6 +14,6 @@ def run_defense_bot(c: Controller, core_pos: Position):
                 return
 
     if c.get_move_cooldown() == 0:
-        march_dir = core_pos.direction_to(my_pos)
-        if c.can_move(march_dir):
-            c.move(march_dir)
+        # Create a target position directly away from the core
+        outward_target = my_pos.add(core_pos.direction_to(my_pos))
+        smart_move(c, my_pos, outward_target)
